@@ -1,10 +1,14 @@
-import { useState } from "react";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { useForm, Controller } from "react-hook-form";
+import { useState, useContext } from "react";
+import { MoviesContext } from "../../contexts/moviesContext";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
+import { useNavigate } from "react-router";
 
 const ratings = [
   {
@@ -57,30 +61,47 @@ const styles = {
 };
 
 const ReviewForm = ({ movie }) => {
+
+  const context = useContext(MoviesContext);
+
   const [rating, setRating] = useState(3);
-  
+
+  const [open, setOpen] = useState(false);
+
+  const navigate = useNavigate();
+
   const defaultValues = {
     author: "",
     review: "",
     agree: false,
     rating: "3",
   };
-  
+
   const {
     control,
     formState: { errors },
     handleSubmit,
     reset,
-  } = useForm(defaultValues);
+  } = useForm({ defaultValues });
 
   const handleRatingChange = (event) => {
     setRating(event.target.value);
   };
 
+  const handleSnackClose = (event) => {
+    setOpen(false);
+    navigate("/movies/favorites");
+  };
+
   const onSubmit = (review) => {
     review.movieId = movie.id;
     review.rating = rating;
-    console.log(review);
+
+    // console.log(review);
+
+    context.addReview(movie, review);
+
+    setOpen(true);
   };
 
   return (
@@ -89,7 +110,31 @@ const ReviewForm = ({ movie }) => {
         Write a review
       </Typography>
 
-      <form sx={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
+      <Snackbar
+        sx={styles.snack}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        open={open}
+        onClose={handleSnackClose}
+      >
+        <MuiAlert
+          severity="success"
+          variant="filled"
+          onClose={handleSnackClose}
+        >
+          <Typography variant="h4">
+            Thank you for submitting a review
+          </Typography>
+        </MuiAlert>
+      </Snackbar>
+
+      <form
+        sx={styles.form}
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
         <Controller
           name="author"
           control={control}
@@ -110,17 +155,22 @@ const ReviewForm = ({ movie }) => {
             />
           )}
         />
+
         {errors.author && (
           <Typography variant="h6" component="p">
             {errors.author.message}
           </Typography>
         )}
+
         <Controller
           name="review"
           control={control}
           rules={{
             required: "Review cannot be empty.",
-            minLength: { value: 10, message: "Review is too short" },
+            minLength: {
+              value: 10,
+              message: "Review is too short",
+            },
           }}
           defaultValue=""
           render={({ field: { onChange, value } }) => (
@@ -139,6 +189,7 @@ const ReviewForm = ({ movie }) => {
             />
           )}
         />
+
         {errors.review && (
           <Typography variant="h6" component="p">
             {errors.review.message}
@@ -154,12 +205,18 @@ const ReviewForm = ({ movie }) => {
               select
               variant="outlined"
               label="Rating Select"
-              value={rating}
-              onChange={handleRatingChange}
+              value={value}
+              onChange={(event) => {
+                onChange(event);
+                handleRatingChange(event);
+              }}
               helperText="Don't forget your rating"
             >
               {ratings.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
+                <MenuItem
+                  key={option.value}
+                  value={option.value}
+                >
                   {option.label}
                 </MenuItem>
               ))}
@@ -176,6 +233,7 @@ const ReviewForm = ({ movie }) => {
           >
             Submit
           </Button>
+
           <Button
             type="reset"
             variant="contained"
@@ -184,8 +242,11 @@ const ReviewForm = ({ movie }) => {
             onClick={() => {
               reset({
                 author: "",
-                content: "",
+                review: "",
+                agree: false,
+                rating: "3",
               });
+              setRating(3);
             }}
           >
             Reset
