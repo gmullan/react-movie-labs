@@ -42,13 +42,13 @@ const SiteHeader = () => {
 
   return (
     <>
-      <AppBar position="fixed" color="secondary">
+      <AppBar position="fixed" sx={{ backgroundColor: "#512da8" }}>
         <Toolbar>
-          <Typography variant="h4" sx={{ flexGrow: 1 }}>
+          <Typography variant="h4" sx={{ flexGrow: 1, fontWeight: "bold"}}>
             TMDB Client
           </Typography>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            All you ever wanted to know about Movies!
+          <Typography variant="h6" sx={{ flexGrow: 1}}>
+            Discover popular, top rated, and new movies!
           </Typography>
             {isMobile ? (
               <>
